@@ -102,7 +102,7 @@ if __name__ == "__main__":
             l = loss(outputs, batch_y)
             l.backward()
             optimizer.step()
-        logging.info(f"Epoch: {epoch}. Loss: {loss}")
+        log.info(f"Epoch: {epoch}. Loss: {loss}")
 
     correct = 0
     total = 0
