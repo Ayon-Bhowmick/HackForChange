@@ -28,17 +28,6 @@ async def postPin(imageURL: str = Body(...,embed=True),
                   # harvestDate: datetime = Body(...,embed=True), # --> not needed if user does not edit this
                   note: str = Body(...,embed=True)
                   ):
-    harvestDate = datetime.datetime.now()
-    ret = database.postPinData(db,{"imageUrl":imageURL,"name":name,"isToxic":isToxic,"location":location,"note":note,"harvestDate":harvestDate})
+    ret = database.postPinData(db,{"imageUrl":imageURL,"name":name,"isToxic":isToxic,"location":location,"note":note})
     if ret == 1:
         return {"Status Code": "200 OK"}
-    #return {"imageUrl":imageURL,"name":name,"isToxic":isToxic,"location":location,"notes":notes,"harvestDate":harvestDate}
-
-
-# Routes
-# 
-# 
-# 
-# 
-# 
-# 
