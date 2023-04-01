@@ -1,13 +1,21 @@
-import React from 'react';
-import { StyleSheet, View } from 'react-native';
-import MapView, {PROVIDER_GOOGLE} from 'react-native-maps';
+import { StatusBar } from 'expo-status-bar';
+import { StyleSheet, Text, View } from 'react-native';
+import { NavigationContainer } from '@react-navigation/native';
+import Map from "./views/Map.js"
+import Pin from "./views/Pin.js"
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
+const Stack = createNativeStackNavigator();
 
-export default function App() {
+export default function App({navigation}) {
   return (
-    <View style={styles.container}>
-      <MapView style={styles.map} />
-    </View>
+    <NavigationContainer>
+		<Stack.Navigator initialRouteName="Home">
+			<Stack.Screen name="Map" component={Map} />
+			<Stack.Screen name="Pin" component={Pin} />
+      	</Stack.Navigator>
+    </NavigationContainer>
+    
   );
 }
 

@@ -1,0 +1,1 @@
+to folder mobile/forager and in terminal npx expo start
