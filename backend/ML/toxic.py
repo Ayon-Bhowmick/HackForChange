@@ -76,8 +76,9 @@ if __name__ == "__main__":
     toxic = ToxicDataMaker()
     if BUILD_DATA:
         toxic.make_training_data()
+    log = logging.getLogger("info")
     data = np.load("toxic_data.npy", allow_pickle=True)
-    net = AyonNet().cuda()
+    net = AyonNet()
     optimizer = optim.Adam(net.parameters(), lr=0.001)
     X = torch.Tensor(np.array([i[0] for i in data])).view(-1, 304, 304)
     X = X/255.0
@@ -88,32 +89,33 @@ if __name__ == "__main__":
     test_X = X[-val_size:]
     test_y = y[-val_size:]
     # logging.info(train_X.shape, train_y.shape, test_X.shape, test_y.shape)
-    BATCH_SIZE = 25
+    BATCH_SIZE = 50
     EPOCHS = 3
-    logging.info("Starting training")
+    log.info("Starting training")
     for epoch in range(EPOCHS):
         for i in tqdm(range(0, len(train_X), BATCH_SIZE)):
-            batch_X = train_X[i:i+BATCH_SIZE].view(-1, 1, 304, 304).cuda.set_device(1)
-            batch_y = train_y[i:i+BATCH_SIZE].cuda.set_device(1)
+            batch_X = train_X[i:i+BATCH_SIZE].view(-1, 1, 304, 304)
+            batch_y = train_y[i:i+BATCH_SIZE]
             net.zero_grad()
             outputs = net(batch_X)
-            loss = nn.NLLLoss(outputs, batch_y)
-            loss.backward()
+            loss = nn.MSELoss()
+            l = loss(outputs, batch_y)
+            l.backward()
             optimizer.step()
-        logging.info(f"Epoch: {epoch}. Loss: {loss}")
+        log.info(f"Epoch: {epoch}. Loss: {loss}")
 
     correct = 0
     total = 0
-    logging.info("testing")
+    log.info("testing")
     with torch.no_grad():
         for i in tqdm(range(len(test_X))):
             real = torch.argmax(test_y[i])
-            net_out = net(test_X[i].view(-1, 1, 304, 304).cuda.set_device(2))[0]
+            net_out = net(test_X[i].view(-1, 1, 304, 304))[0]
             predict = torch.argmax(net_out)
             if predict == real:
                 correct += 1
             total += 1
-    logging.info("Accuracy:", round(correct/total, 3))
+    log.info("Accuracy:", round(correct/total, 3))
 
     if round(correct/total, 3) > 0:
         torch.save(net.state_dict(), "toxic.pt")
