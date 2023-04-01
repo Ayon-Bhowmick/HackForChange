@@ -45,15 +45,15 @@ class ToxicDataMaker():
 
 class Net(nn.Module):
     def __init__(self):
-        super.__init__()
-        super.conv1 = nn.Conv2d(1, 32, 5)
-        super.conv2 = nn.Conv2d(32, 64, 5)
-        super.conv3 = nn.Conv2d(64, 128, 5)
-        super.conv4 = nn.Conv2d(128, 256, 5)
-        super.conv5 = nn.Conv2d(256, 512, 5)
-        super.fc1 = nn.Linear(512*5*5, 1024)
-        super.fc2 = nn.Linear(1024, 512)
-        super.fc3 = nn.Linear(512, 2)
+        super().__init__()
+        self.conv1 = nn.Conv2d(1, 32, 5)
+        self.conv2 = nn.Conv2d(32, 64, 5)
+        self.conv3 = nn.Conv2d(64, 128, 5)
+        self.conv4 = nn.Conv2d(128, 256, 5)
+        self.conv5 = nn.Conv2d(256, 512, 5)
+        self.fc1 = nn.Linear(512*5*5, 1024)
+        self.fc2 = nn.Linear(1024, 512)
+        self.fc3 = nn.Linear(512, 2)
 
     def forward(self, x):
         x = F.max_pool2d(F.relu(self.conv1(x)), (2, 2))
@@ -77,4 +77,12 @@ if __name__ == "__main__":
     data = np.load("toxic_data.npy", allow_pickle=True)
     net = Net()
     optimizer = optim.Adam(net.parameters(), lr=0.001)
-    
+    X = torch.Tensor([i[0] for i in data]).view(-1, 300, 300)
+    X = X/255.0
+    y = torch.Tensor([i[1] for i in data])
+    val_size = int(len(X) * 0.1)
+    train_X = X[:-val_size]
+    train_y = y[:-val_size]
+    test_X = X[-val_size:]
+    test_y = y[-val_size:]
+    print(train_X.shape, train_y.shape, test_X.shape, test_y.shape)
