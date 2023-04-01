@@ -1,9 +1,13 @@
-import { StyleSheet, Text, View } from 'react-native';
+import { Button, StyleSheet, Text, View } from 'react-native';
 
-export default function Pin({navigation}) {
+export default function Login({navigation}) {
   return (
     <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-        <Text>Map Screen</Text>
+        <Text>Login screen</Text>
+        <Button
+        title="Log in"
+        onPress={() => navigation.navigate('Map')}
+      />
     </View>
   );
 }
