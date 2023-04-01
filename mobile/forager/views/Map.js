@@ -36,12 +36,8 @@ export default function Map({navigation}) {
 
   
   return (
-    <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-        <Text>Map Screen</Text>
-        <Button
-        title="Add a Pin"
-        onPress={() => navigation.navigate('Add')}
-      />
+    <View>
+    
       <MapView 
         style={styles.map}
         onRegionChange={onRegionChange}
@@ -54,6 +50,10 @@ export default function Map({navigation}) {
         
         >
         </MapView>
+        <Button style={styles.button}
+        title="Add a Pin"
+        onPress={() => navigation.navigate('Add')}
+      />
     </View>
   );
 }
@@ -62,11 +62,18 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#fff',
-    alignItems: 'center',
+    alignItems: 'top',
     justifyContent: 'center',
   },
   map: {
     width: '100%',
-    height: '100%'
+    height: '92%',
+    top: 0
+    
+  },
+
+  button: {
+    position: 'absolute',
+
   }
 });
