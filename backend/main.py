@@ -4,8 +4,6 @@ from fastapi import FastAPI
 import database
 
 app = FastAPI()
-
-api = FastAPI()
 db = database.getDatatbase()
 
 @app.get("/")
