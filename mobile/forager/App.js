@@ -1,12 +1,21 @@
 import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, Text, View } from 'react-native';
+import { NavigationContainer } from '@react-navigation/native';
+import Map from "./views/Map.js"
+import Pin from "./views/Pin.js"
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
-export default function App() {
+const Stack = createNativeStackNavigator();
+
+export default function App({navigation}) {
   return (
-    <View style={styles.container}>
-      <Text>Team Balls!</Text>
-      <StatusBar style="auto" />
-    </View>
+    <NavigationContainer>
+		<Stack.Navigator initialRouteName="Home">
+			<Stack.Screen name="Map" component={Map} />
+			<Stack.Screen name="Pin" component={Pin} />
+      	</Stack.Navigator>
+    </NavigationContainer>
+    
   );
 }
 
