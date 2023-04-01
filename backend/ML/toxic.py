@@ -9,9 +9,9 @@ import torch.optim as optim
 import logging
 import sys
 
-BUILD_DATA = True
+BUILD_DATA = False
 
-class ToxicClassifier():
+class ToxicDataMaker():
     log = logging.getLogger("info")
     TOXIC = "./tpc-imgs/toxic_images"
     NONTOXIC = "./tpc-imgs/nontoxic_images"
@@ -43,12 +43,38 @@ class ToxicClassifier():
         np.save("toxic_data.npy", self.data)
         self.log.info(f"Toxic: {self.toxic_count}   Non-Toxic: {self.nontoxic_count}")
 
+class Net(nn.Module):
+    def __init__(self):
+        super.__init__()
+        super.conv1 = nn.Conv2d(1, 32, 5)
+        super.conv2 = nn.Conv2d(32, 64, 5)
+        super.conv3 = nn.Conv2d(64, 128, 5)
+        super.conv4 = nn.Conv2d(128, 256, 5)
+        super.conv5 = nn.Conv2d(256, 512, 5)
+        super.fc1 = nn.Linear(512*5*5, 1024)
+        super.fc2 = nn.Linear(1024, 512)
+        super.fc3 = nn.Linear(512, 2)
 
+    def forward(self, x):
+        x = F.max_pool2d(F.relu(self.conv1(x)), (2, 2))
+        x = F.max_pool2d(F.relu(self.conv2(x)), (2, 2))
+        x = F.max_pool2d(F.relu(self.conv3(x)), (2, 2))
+        x = F.max_pool2d(F.relu(self.conv4(x)), (2, 2))
+        x = F.max_pool2d(F.relu(self.conv5(x)), (2, 2))
+        x = x.view(-1, 512*5*5)
+        x = F.relu(self.fc1(x))
+        x = F.relu(self.fc2(x))
+        x = self.fc3(x)
+        return F.softmax(x, dim=1)
 
 
 if __name__ == "__main__":
     logging.basicConfig(stream=sys.stdout)
     logging.getLogger("info").setLevel(logging.INFO)
-    toxic = ToxicClassifier()
+    toxic = ToxicDataMaker()
     if BUILD_DATA:
         toxic.make_training_data()
+    data = np.load("toxic_data.npy", allow_pickle=True)
+    net = Net()
+    optimizer = optim.Adam(net.parameters(), lr=0.001)
+    
