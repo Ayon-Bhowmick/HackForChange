@@ -32,24 +32,24 @@ def getAllPinData(conn):
     @return: the data in a json object
     """
     cursor = conn.cursor()
-    sql = '''SELECT pinData.imageURL, pinData.name, pinData.isToxic, pinData.location, pinData.harvestDate, noteData.message
+    sql = '''SELECT pinData.imageURL, pinData.name, pinData.isEdible, pinData.location, pinData.harvestDate, noteData.message
             FROM pinData
             LEFT JOIN noteData ON pinData.ID = noteData.pin_id;'''
     cursor.execute(sql)
     pinData = cursor.fetchall()
-    label = ["imageURL", "name", "isToxic", "location", "harvestData", "notes"]
+    label = ["imageURL", "name", "isEdible", "location", "harvestData", "notes"]
     return createJsonObj(label, pinData)
 
 def postPinData(conn,data):
     """
-    Function to post imageURL, name, isToxic, location, harvestDate, and message to the pinData and noteData table
+    Function to post imageURL, name, isEdible, location, harvestDate, and message to the pinData and noteData table
     @param conn: the database connection
     @return: the data in a json object
     """
     cursor = conn.cursor()
 
     # Sql Statement for Pin
-    sqlPin = '''INSERT INTO pinData (imageURL, name, isToxic, location, harvestDate)
+    sqlPin = '''INSERT INTO pinData (imageURL, name, isEdible, location, harvestDate)
                 VALUES (%s, %s, %s, %s, NOW()) RETURNING id;'''
 
     # Sql Statement for Note
@@ -58,7 +58,7 @@ def postPinData(conn,data):
                 '''
 
     # Adding Pin information to Table
-    cursor.execute(sqlPin, (data['imageUrl'], data['name'], data['isToxic'], data['location']))
+    cursor.execute(sqlPin, (data['imageUrl'], data['name'], data['isEdible'], data['location']))
     new_id = cursor.fetchone()[0]
     conn.commit()
 
@@ -73,7 +73,7 @@ def postPinData(conn,data):
     # for pin in pinData:
     #     jsonObj["imageURL"] = pin[0]
     #     jsonObj["name"] = pin[1]
-    #     jsonObj["isToxic"] = pin[2]
+    #     jsonObj["isEdible"] = pin[2]
     #     jsonObj["location"] = pin[3]
     #     jsonObj["harvestData"] = pin[4]
     #     jsonObj["notes"] = pin[5]
@@ -81,7 +81,7 @@ def postPinData(conn,data):
     # print(array)
     # return array
 
-# label = ["imageURL", "name", "isToxic", "location", "harvestData", "notes"]
+# label = ["imageURL", "name", "isEdible", "location", "harvestData", "notes"]
 # data = [
 #           ["link","apple",false,"(1,2)",null,"cool"],
 #           ["link","orange",false,"(1,2)","2023-04-01T16:48:24.801400",null]

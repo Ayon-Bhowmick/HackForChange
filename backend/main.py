@@ -1,3 +1,4 @@
+import base64
 import datetime
 from typing import Union
 
@@ -20,14 +21,21 @@ async def read_item(item_id: int, q: Union[str, None] = None):
 async def getAllPins():
     return database.getAllPinData(db)
 
+
 @app.post("/addpin")
-async def postPin(imageURL: str = Body(...,embed=True),
+async def postPin(imageURL: base64 = Body(...,embed=True),
                   name: str = Body(...,embed=True),
-                  isToxic: bool = Body(...,embed=True),
+                  isEdible: bool = Body(...,embed=True),
                   location: str = Body(...,embed=True), 
                   # harvestDate: datetime = Body(...,embed=True), # --> not needed if user does not edit this
                   note: str = Body(...,embed=True)
                   ):
-    ret = database.postPinData(db,{"imageUrl":imageURL,"name":name,"isToxic":isToxic,"location":location,"note":note})
+    ret = database.postPinData(db,{"imageUrl":imageURL,"name":name,"isEdible":isEdible,"location":location,"note":note})
     if ret == 1:
         return {"Status Code": "200 OK"}
+    else:
+        return {"Error"}
+
+@app.post("/addphoto")
+async def addPhoto(imageURL: base64=Body(...,embed=True)):
+    print(imageURL)
