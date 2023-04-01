@@ -9,10 +9,13 @@
     "web": "expo start --web"
   },
   "dependencies": {
+    "@googlemaps/js-api-loader": "^1.15.1",
     "expo": "~48.0.9",
     "expo-status-bar": "~1.4.4",
+    "pod-install": "^0.1.38",
     "react": "18.2.0",
-    "react-native": "0.71.4"
+    "react-native": "0.71.4",
+    "react-native-maps": "^1.4.0"
   },
   "devDependencies": {
     "@babel/core": "^7.20.0"
