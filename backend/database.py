@@ -40,13 +40,34 @@ def getAllPinData(conn):
     label = ["imageURL", "name", "isToxic", "location", "harvestData", "notes"]
     return createJsonObj(label, pinData)
 
-def postPinData(conn):
+def postPinData(conn,data):
     """
     Function to post imageURL, name, isToxic, location, harvestDate, and message to the pinData and noteData table
     @param conn: the database connection
     @return: the data in a json object
     """
-    
+    cursor = conn.cursor()
+
+    # Sql Statement for Pin
+    sqlPin = '''INSERT INTO pinData (imageURL, name, isToxic, location, harvestDate)
+                VALUES (%s, %s, %s, %s, NOW()) RETURNING id;'''
+
+    # Sql Statement for Note
+    sqlNote = '''INSERT INTO noteData (message, pin_id)
+                VALUES (%s, %s);
+                '''
+
+    # Adding Pin information to Table
+    cursor.execute(sqlPin, (data['imageUrl'], data['name'], data['isToxic'], data['location']))
+    new_id = cursor.fetchone()[0]
+    conn.commit()
+
+    # Adding note to table
+    cursor.execute(sqlNote,(data['note'],new_id))
+    conn.commit()
+
+    return 1
+
     # jsonObj = {}
     # array = []
     # for pin in pinData:
