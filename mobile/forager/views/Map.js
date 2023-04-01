@@ -39,8 +39,8 @@ export default function Map({navigation}) {
     <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
         <Text>Map Screen</Text>
         <Button
-        title="Go to Pin"
-        onPress={() => navigation.navigate('Pin')}
+        title="Add a Pin"
+        onPress={() => navigation.navigate('Add')}
       />
       <MapView 
         style={styles.map}
