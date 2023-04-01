@@ -77,7 +77,7 @@ if __name__ == "__main__":
     if BUILD_DATA:
         toxic.make_training_data()
     data = np.load("toxic_data.npy", allow_pickle=True)
-    net = AyonNet().cuda()
+    net = AyonNet().cuda("cuda:1")
     optimizer = optim.Adam(net.parameters(), lr=0.001)
     X = torch.Tensor(np.array([i[0] for i in data])).view(-1, 304, 304)
     X = X/255.0
@@ -93,8 +93,8 @@ if __name__ == "__main__":
     logging.info("Starting training")
     for epoch in range(EPOCHS):
         for i in tqdm(range(0, len(train_X), BATCH_SIZE)):
-            batch_X = train_X[i:i+BATCH_SIZE].view(-1, 1, 304, 304).cuda.set_device(1)
-            batch_y = train_y[i:i+BATCH_SIZE].cuda.set_device(1)
+            batch_X = train_X[i:i+BATCH_SIZE].view(-1, 1, 304, 304).cuda("cuda:1")
+            batch_y = train_y[i:i+BATCH_SIZE].cuda("cuda:1")
             net.zero_grad()
             outputs = net(batch_X)
             loss = nn.NLLLoss(outputs, batch_y)
@@ -108,7 +108,7 @@ if __name__ == "__main__":
     with torch.no_grad():
         for i in tqdm(range(len(test_X))):
             real = torch.argmax(test_y[i])
-            net_out = net(test_X[i].view(-1, 1, 304, 304).cuda.set_device(2))[0]
+            net_out = net(test_X[i].view(-1, 1, 304, 304).cuda("cuda:1"))[0]
             predict = torch.argmax(net_out)
             if predict == real:
                 correct += 1
