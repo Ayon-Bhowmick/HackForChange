@@ -21,15 +21,14 @@ npx expo start
 
 ## Artifacts and Planning
 ### State Machine
-![State machine](./artifacts/stateDiagram.png)
+![State machine](./docs/stateDiagram.png)
 
 ### ERD
-![ERD](./artifacts/ERD.png)
-## Build with 
+![ERD](./docs/ERD.png)
+## Build with
 * react native
 * firebase
 * google maps api
 * pytorch library
 * toxic plant classification dataset
 ## Repo
-
