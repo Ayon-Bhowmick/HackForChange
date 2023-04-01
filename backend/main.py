@@ -1,9 +1,10 @@
 from typing import Union
 
 from fastapi import FastAPI
+import database
 
 app = FastAPI()
-
+db = database.getDatatbase()
 
 @app.get("/")
 def read_root():
