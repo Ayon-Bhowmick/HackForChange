@@ -17,20 +17,7 @@ export function Auth() {
 
     return (
         <View>
-            <Text>
-                Iniciar sesión
-            </Text>
-            <Text>
-                Iniciar sesión
-            </Text>
-            <Text>
-                Iniciar sesión
-            </Text>
-            <Text>
-                Iniciar sesión
-            </Text>
-            <Button title="Con Facebook" onPress={() => signInWithFacebook() } disabled={isLoading}/>
-            <Button title="Con Google" onPress={() => signInWithGoogle() } disabled={isLoading}/>
+            {/*<Button title="Sign in Google" onPress={() => signInWithGoogle() } disabled={isLoading}/>*/}
         </View>
     )
 }

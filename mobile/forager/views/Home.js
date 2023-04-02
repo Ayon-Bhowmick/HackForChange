@@ -1,14 +1,26 @@
 import { supabase } from '../services/supabase';
-import { Button, StyleSheet, Text, View, TouchableOpacity } from 'react-native';
+import { Button, StyleSheet, Text, View, TouchableOpacity, Alert} from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { useRef, useState, useEffect} from 'react';
 import MapView, { Callout, Marker, PROVIDER_GOOGLE } from 'react-native-maps';
 import * as FileSystem from 'expo-file-system';
 import { shareAsync } from 'expo-sharing';
 import * as Location from 'expo-location';
-
+import { useIsSignInWithProvider } from "../hooks/useSignInWithProvider"
 
 export function Home({navigation}) {
+    const { isLoading: isLoadingFacebook, error: errorFacebook, signIn: signInWithFacebook } = useIsSignInWithProvider('facebook')
+    const { isLoading: isLoadingGoogle, error: errorGoogle, signIn: signInWithGoogle } = useIsSignInWithProvider('google')
+
+    const isLoading = isLoadingFacebook || isLoadingGoogle
+    const error = errorFacebook || errorGoogle
+
+    useEffect( () => {
+        if (error) Alert.alert('Error', error)
+    }, [errorFacebook, errorGoogle])
+
+    console.log({isLoading})
+
     Location.setGoogleApiKey("AIzaSyAwDCdf88Yq2ZroapxOY-FyfxEvBN0Ymx8");
 
     const [location, setLocation] = useState();
@@ -56,7 +68,8 @@ export function Home({navigation}) {
         <View>
             <Text>Name: {user.name}</Text>
             <Text>Email: {user.email}</Text>
-            {/*<Button title='Sign Out' onPress={() => signout()}/>*/}
+            <Button title='Testing Add' onPress={() => signout()}/>
+            <Button title="Sign in With Google" onPress={() => signInWithGoogle() } disabled={isLoading}/>
         <TouchableOpacity onPress={() => navigation.navigate('Add')} style={styles.appButtonContainer}>
           <Text style={styles.appButtonText}>+</Text>
         </TouchableOpacity>
