@@ -1,14 +1,17 @@
 import psycopg2
 import os
+#from boto.s3.connection import S3Connection
 
 
 def getDatatbase():
     try:
+        # sse = S3Connection(os.environ['DB_NAME'], os.environ['DB_USER'], os.environ['DB_PASS'], os.environ['DB_HOST'], os.environ['DB_PORT'], )
         conn = psycopg2.connect(database=os.getenv("DB_NAME"),
                                 user=os.getenv("DB_USER"),
                                 password=os.getenv("DB_PASS"),
                                 host=os.getenv("DB_HOST"),
-                                port=os.getenv("DB_PORT"))
+                                port=os.getenv("DB_PORT"),
+                                sslmode='require')
         # conn = psycopg2.connect(database=DB_NAME,
         #                         user=DB_USER,
         #                         password=DB_PASS,
