@@ -53,20 +53,24 @@ class AyonNet(nn.Module):
         self.conv3 = nn.Conv2d(64, 128, 5)
         self.conv4 = nn.Conv2d(128, 256, 5)
         self.conv5 = nn.Conv2d(256, 512, 5)
-        self.fc1 = nn.Linear(512*5*5, 1024)
-        self.fc2 = nn.Linear(1024, 512)
-        self.fc3 = nn.Linear(512, 2)
+        self.fc1 = nn.Linear(512 * 5 * 5, 1024)
+        self.fc2 = nn.Linear(1024, 1024)
+        self.fc3 = nn.Linear(1024, 1024)
+        self.fc4 = nn.Linear(1024, 512)
+        self.fc5 = nn.Linear(512, 2)
 
     def forward(self, x):
-        x = F.max_pool2d(F.relu(self.conv1(x)), (2, 2))
-        x = F.max_pool2d(F.relu(self.conv2(x)), (2, 2))
-        x = F.max_pool2d(F.relu(self.conv3(x)), (2, 2))
-        x = F.max_pool2d(F.relu(self.conv4(x)), (2, 2))
-        x = F.max_pool2d(F.relu(self.conv5(x)), (2, 2))
-        x = x.view(-1, 512*5*5)
+        x = F.relu(self.conv1(x))
+        x = F.max_pool2d(F.relu(self.conv2(x)), (3, 3))
+        x = F.max_pool2d(F.relu(self.conv3(x)), (3, 3))
+        x = F.relu(self.conv4(x))
+        x = F.max_pool2d(F.relu(self.conv5(x)), (3, 3))
+        x = x.view(-1, 512 * 5 * 5)
         x = F.relu(self.fc1(x))
         x = F.relu(self.fc2(x))
-        x = self.fc3(x)
+        x = F.relu(self.fc3(x))
+        x = F.relu(self.fc4(x))
+        x = self.fc5(x)
         return F.softmax(x, dim=1)
 
 
@@ -96,9 +100,11 @@ if __name__ == "__main__":
         for i in tqdm(range(0, len(train_X), BATCH_SIZE)):
             batch_X = train_X[i:i+BATCH_SIZE].view(-1, 1, 304, 304)
             batch_y = train_y[i:i+BATCH_SIZE]
+            log.info(f"batch_X: {batch_X.shape}   batch_y: {batch_y.shape}")
             net.zero_grad()
             outputs = net(batch_X)
             loss = nn.MSELoss()
+            log.info(f"outputs: {outputs.shape}   batch_y: {batch_y.shape}")
             l = loss(outputs, batch_y)
             l.backward()
             optimizer.step()
@@ -115,7 +121,7 @@ if __name__ == "__main__":
             if predict == real:
                 correct += 1
             total += 1
-    log.info("Accuracy:", round(correct/total, 3))
+    log.info(f"Accuracy: {round(correct/total, 3)}")
 
-    if round(correct/total, 3) > 0:
+    if round(correct/total, 3) > 0.502:
         torch.save(net.state_dict(), "toxic.pt")
