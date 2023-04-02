@@ -11,6 +11,7 @@ import sys
 import pickle
 
 BUILD_DATA = False
+TRAIN = False
 
 class PlantDataMaker():
     log = logging.getLogger("info")
@@ -123,25 +124,27 @@ if __name__ == "__main__":
         with open("plant_class_map.pkl", "rb") as f:
             class_map = pickle.load(f)
     model = AyonNet().cuda()
-    optimizer = optim.Adam(model.parameters(), lr=0.001)
-    train_X = torch.Tensor(np.array([i[0] for i in training_data])).view(-1, 1, 604, 604)
-    train_X /= 255.0
-    train_y = torch.Tensor(np.array([i[1] for i in training_data]))
-    BATCH_SIZE = 5
-    EPOCHS = 3
-    for epoch in range(EPOCHS):
-        for i in tqdm(range(0, len(train_X), BATCH_SIZE)):
-            batch_X = train_X[i:i + BATCH_SIZE].view(-1, 1, 604, 604).cuda()
-            batch_y = train_y[i:i + BATCH_SIZE].cuda()
-            model.zero_grad()
-            outputs = model(batch_X)
-            outputs = F.softmax(outputs, dim=1)
-            loss = F.binary_cross_entropy(outputs, batch_y)
-            loss.backward()
-            optimizer.step()
-        log.info(f"Epoch: {epoch}. Loss: {loss}")
-
-    torch.save(model.state_dict(), "plant.pt")
+    if TRAIN:
+        optimizer = optim.Adam(model.parameters(), lr=0.001)
+        train_X = torch.Tensor(np.array([i[0] for i in training_data])).view(-1, 1, 604, 604)
+        train_X /= 255.0
+        train_y = torch.Tensor(np.array([i[1] for i in training_data]))
+        BATCH_SIZE = 5
+        EPOCHS = 3
+        for epoch in range(EPOCHS):
+            for i in tqdm(range(0, len(train_X), BATCH_SIZE)):
+                batch_X = train_X[i:i + BATCH_SIZE].view(-1, 1, 604, 604).cuda()
+                batch_y = train_y[i:i + BATCH_SIZE].cuda()
+                model.zero_grad()
+                outputs = model(batch_X)
+                outputs = F.softmax(outputs, dim=1)
+                loss = F.binary_cross_entropy(outputs, batch_y)
+                loss.backward()
+                optimizer.step()
+            log.info(f"Epoch: {epoch}. Loss: {loss}")
+        torch.save(model.state_dict(), "plant.pt")
+    else:
+        model.load_state_dict(torch.load("plant.pt"))
 
     correct = 0
     total = 0
