@@ -90,7 +90,7 @@ class AyonNet(nn.Module):
         x = self.fc5(x)
         return x
 
-def run(img) -> "list[bool, str]":
+def run(img) -> "set[bool, str]":
     img = cv2.resize(img, (604, 604))
     img = cv2.copyMakeBorder(img, 2, 2, 2, 2, cv2.BORDER_CONSTANT, value=0)
     img = torch.Tensor(img).view(-1, 1, 604, 604)
@@ -103,7 +103,7 @@ def run(img) -> "list[bool, str]":
         pred = F.softmax(output, dim=1)
         confidence, classes = torch.max(pred, 1)
         plant = class_map[classes.item()]
-        return [confidence.item() > 0.9, plant]
+        return (confidence.item() > 0.9, plant)
 
 
 if __name__ == "__main__":
