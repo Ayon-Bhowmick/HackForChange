@@ -32,15 +32,22 @@ const styles = StyleSheet.create({
   },
 });
 */}
-
+import { NavigationContainer } from '@react-navigation/native';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import 'react-native-url-polyfill/auto';
 import { useEffect, useState } from 'react';
 import { View } from 'react-native';
 import { Auth } from './views/Auth';
 import { Home } from './views/Home';
 import { supabase } from './services/supabase';
+import Map from "./views/Map.js"
+import Add from "./views/Add.js"
+import Login from "./views/Login.js"
 
-export default function App() {
+
+const Stack = createNativeStackNavigator();
+
+export default function App({navigation}) {
   const [session, setSession] = useState(null)
 
   useEffect(() => {
@@ -54,10 +61,16 @@ export default function App() {
   }, [])
 
   return (
-    <View>
-      {
-        session && session.user ? <Home /> : <Auth /> 
-      }
-    </View>
+    <><View>
+      {session && session.user ? <Home /> : <Auth />}
+    </View><NavigationContainer>
+        <Stack.Navigator initialRouteName="Home">
+          <Stack.Screen name="Login" component={Login} />
+          <Stack.Screen name="Map" component={Map} />
+          <Stack.Screen name="Home" component={Home} />
+          <Stack.Screen name="Add" component={Add} />
+
+        </Stack.Navigator>
+      </NavigationContainer></>
   )
 }
