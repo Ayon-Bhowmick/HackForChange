@@ -4,6 +4,7 @@
     "slug": "forager",
     "version": "1.0.0",
     "orientation": "portrait",
+    "scheme": "com.athenscai.forager",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "splash": {
@@ -16,7 +17,8 @@
     ],
     "ios": {
       "supportsTablet": true,
-       "config": {
+      "bundleIdentifier": "com.athenscai.forager",
+      "config": {
         "googleMapsApiKey": "AIzaSyAwDCdf88Yq2ZroapxOY-FyfxEvBN0Ymx8"
       }
     },
@@ -24,10 +26,16 @@
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
-      }
+      },
+      "package": "com.athenscai.forager"
     },
     "web": {
       "favicon": "./assets/favicon.png"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "65dbec71-bd90-4c71-be11-0e812751cea6"
+      }
     }
   }
 }

@@ -11,7 +11,7 @@ import sys
 import pickle
 
 BUILD_DATA = False
-LOAD_MODEL = False
+TRAIN = False
 
 class PlantDataMaker():
     log = logging.getLogger("info")
@@ -59,6 +59,7 @@ class PlantDataMaker():
 class AyonNet(nn.Module):
     def __init__(self):
         super().__init__()
+        self.log = logging.getLogger("info")
         self.conv1 = nn.Conv2d(1, 32, 5)
         self.conv2 = nn.Conv2d(32, 64, 5)
         self.conv3 = nn.Conv2d(64, 128, 5)
@@ -67,27 +68,43 @@ class AyonNet(nn.Module):
         self.fc1 = nn.Linear(512 * 5 * 5, 1024)
         self.dropout = nn.Dropout(0.5)
         self.fc2 = nn.Linear(1024, 1024)
-        self.fc3 = nn.Linear(1024, 1024)
+        # self.fc3 = nn.Linear(1024, 1024)
         self.fc4 = nn.Linear(1024, 512)
         self.fc5 = nn.Linear(512, 62)
 
     def convs(self, x):
-        x = F.max_pool2d(F.relu(self.conv1(x)), (2, 2))
-        x = F.max_pool2d(F.relu(self.conv2(x)), (2, 2))
-        x = F.max_pool2d(F.relu(self.conv3(x)), (2, 2))
+        x = F.relu(self.conv1(x))
+        x = F.max_pool2d(F.relu(self.conv2(x)), (3, 3))
+        x = F.max_pool2d(F.relu(self.conv3(x)), (3, 3))
         x = F.max_pool2d(F.relu(self.conv4(x)), (3, 3))
         x = F.max_pool2d(F.relu(self.conv5(x)), (3, 3))
         x = x.view(-1, 512 * 5 * 5)
+        return x
 
-    def forward(self):
+    def forward(self, x):
         x = self.convs(x)
         x = F.relu(self.fc1(x))
         x = self.dropout(x)
         x = F.relu(self.fc2(x))
-        x = F.relu(self.fc3(x))
+        # x = F.relu(self.fc3(x))
         x = F.relu(self.fc4(x))
         x = self.fc5(x)
         return x
+
+def run(img) -> "set[bool, str]":
+    img = cv2.resize(img, (604, 604))
+    img = cv2.copyMakeBorder(img, 2, 2, 2, 2, cv2.BORDER_CONSTANT, value=0)
+    img = torch.Tensor(img).view(-1, 1, 604, 604)
+    img /= 255.0
+    model = AyonNet()
+    model.load_state_dict(torch.load("plant.pt"))
+    model.eval()
+    with torch.no_grad():
+        output = model(img)
+        pred = F.softmax(output, dim=1)
+        confidence, classes = torch.max(pred, 1)
+        plant = class_map[classes.item()]
+        return (confidence.item() > 0.9, plant)
 
 
 if __name__ == "__main__":
@@ -106,40 +123,42 @@ if __name__ == "__main__":
         testing_data = np.load("plant_testing_data.npy", allow_pickle=True)
         with open("plant_class_map.pkl", "rb") as f:
             class_map = pickle.load(f)
-    model = AyonNet()
-    optimizer = optim.Adam(model.parameters(), lr=0.001)
-    train_X = torch.Tensor(np.array([i[0] for i in training_data])).view(-1, 1, 604, 604)
-    train_X /= 255.0
-    train_y = torch.Tensor(np.array([i[1] for i in training_data]))
-    BATCH_SIZE = 25
-    EPOCHS = 3
-    for epoch in range(EPOCHS):
-        for i in tqdm(range(0, len(train_X), BATCH_SIZE)):
-            batch_X = train_X[i:i + BATCH_SIZE].view(-1, 1, 604, 604)
-            batch_y = train_y[i:i + BATCH_SIZE]
-            model.zero_grad()
-            outputs = model(batch_X)
-            outputs = F.softmax(outputs, dim=1)
-            loss = F.binary_cross_entropy(outputs, batch_y)
-            loss.backward()
-            optimizer.step()
-        log.info(f"Epoch: {epoch}. Loss: {loss}")
+    model = AyonNet().cuda()
+    if TRAIN:
+        optimizer = optim.Adam(model.parameters(), lr=0.001)
+        train_X = torch.Tensor(np.array([i[0] for i in training_data])).view(-1, 1, 604, 604)
+        train_X /= 255.0
+        train_y = torch.Tensor(np.array([i[1] for i in training_data]))
+        BATCH_SIZE = 5
+        EPOCHS = 3
+        for epoch in range(EPOCHS):
+            for i in tqdm(range(0, len(train_X), BATCH_SIZE)):
+                batch_X = train_X[i:i + BATCH_SIZE].view(-1, 1, 604, 604).cuda()
+                batch_y = train_y[i:i + BATCH_SIZE].cuda()
+                model.zero_grad()
+                outputs = model(batch_X)
+                outputs = F.softmax(outputs, dim=1)
+                loss = F.binary_cross_entropy(outputs, batch_y)
+                loss.backward()
+                optimizer.step()
+            log.info(f"Epoch: {epoch}. Loss: {loss}")
+        torch.save(model.state_dict(), "plant.pt")
+    else:
+        model.load_state_dict(torch.load("plant.pt"))
 
     correct = 0
     total = 0
-    log.info("Testing")
+    log.info("testing")
     test_X = torch.Tensor(np.array([i[0] for i in testing_data])).view(-1, 1, 604, 604)
     test_y = torch.Tensor(np.array([i[1] for i in testing_data]))
     model.eval()
     with torch.no_grad():
         for i in tqdm(range(len(test_X))):
             real = torch.argmax(test_y[i])
-            output = model(test_X[i])[0]
-            predict = torch.argmax(output)
-            if real == predict:
+            net_out = model(test_X[i].view(-1, 1, 604, 604))[0]
+            predict = torch.argmax(net_out)
+            if predict == real:
                 correct += 1
             total += 1
-    log.info(f"Accuracy: {round(correct / total, 3)}")
-
-    if round(correct / total, 3) > 0:
-        torch.save(model.state_dict(), "plant.pt")
+    log.info(f"Accuracy: {round(correct/total, 3)}")
+    model.train()
