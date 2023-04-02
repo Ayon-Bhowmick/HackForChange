@@ -9,6 +9,11 @@ def getDatatbase():
                                 password=os.getenv("DB_PASS"),
                                 host=os.getenv("DB_HOST"),
                                 port=os.getenv("DB_PORT"))
+        # conn = psycopg2.connect(database=DB_NAME,
+        #                         user=DB_USER,
+        #                         password=DB_PASS,
+        #                         host=DB_HOST,
+        #                         port=DB_PORT)
         print("Database connected successfully")
         if (conn == None):
             print("Error: psycopg2.connect() was unsuccessful in connecting...")
