@@ -3,15 +3,14 @@ import { useEffect } from "react"
 import { useIsSignInWithProvider } from "../hooks/useSignInWithProvider"
 
 export function Auth() {
-    const { isLoading: isLoadingFacebook, error: errorFacebook, signIn: signInWithFacebook } = useIsSignInWithProvider('facebook')
     const { isLoading: isLoadingGoogle, error: errorGoogle, signIn: signInWithGoogle } = useIsSignInWithProvider('google')
 
-    const isLoading = isLoadingFacebook || isLoadingGoogle
-    const error = errorFacebook || errorGoogle
+    const isLoading = isLoadingGoogle
+    const error = errorGoogle
 
     useEffect( () => {
         if (error) Alert.alert('Error', error)
-    }, [errorFacebook, errorGoogle])
+    }, [errorGoogle])
 
     console.log({isLoading})
 
