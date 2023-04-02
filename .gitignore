@@ -3,6 +3,8 @@ __pycache__/
 .env
 tpc-imgs/
 *.npy
+plants/
+*.pkl
 
 # mobile
 node_modules/
