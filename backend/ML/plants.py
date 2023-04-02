@@ -58,6 +58,10 @@ class PlantDataMaker():
         np.random.shuffle(self.training_data)
         np.save("plant_testing_data.npy", self.training_data)
 
+class OutputHook(list):
+    def __init__(self, module, input, output):
+        self.append(output)
+
 class AyonNet(nn.Module):
     def __init__(self):
         super().__init__()
@@ -68,11 +72,12 @@ class AyonNet(nn.Module):
         self.conv4 = nn.Conv2d(128, 256, 5)
         self.conv5 = nn.Conv2d(256, 512, 5)
         self.fc1 = nn.Linear(512 * 5 * 5, 1024)
-        self.dropout = nn.Dropout(0.5)
+        self.dropout = nn.Dropout(0.2)
         self.fc2 = nn.Linear(1024, 1024)
-        # self.fc3 = nn.Linear(1024, 1024)
+        self.fc3 = nn.Linear(1024, 1024)
         self.fc4 = nn.Linear(1024, 512)
         self.fc5 = nn.Linear(512, 62)
+        self.relu = nn.ReLU()
 
     def convs(self, x):
         x = F.relu(self.conv1(x))
@@ -88,13 +93,13 @@ class AyonNet(nn.Module):
         x = F.relu(self.fc1(x))
         x = self.dropout(x)
         x = F.relu(self.fc2(x))
-        # x = F.relu(self.fc3(x))
+        x = F.relu(self.fc3(x))
         x = F.relu(self.fc4(x))
         x = self.fc5(x)
         return x
 
 def run(img) -> "set[bool, str]":
-    img = cv2.resize(img, (604, 604))
+    img = cv2.resize(img, (600, 600))
     img = cv2.copyMakeBorder(img, 2, 2, 2, 2, cv2.BORDER_CONSTANT, value=0)
     img = torch.Tensor(img).view(-1, 1, 604, 604)
     img /= 255.0
@@ -128,21 +133,29 @@ if __name__ == "__main__":
     model = AyonNet().cuda()
     if TRAIN:
         log.info("Training model")
-        optimizer = optim.Adam(model.parameters(), lr=0.001)
+        optimizer = optim.Adam(model.parameters(), lr=0.001, weight_decay=0.0001)
+        output_hook = OutputHook()
+        model.relu.register_forward_hook(output_hook)
         train_X = torch.Tensor(np.array([i[0] for i in training_data])).view(-1, 1, 604, 604)
         train_X /= 255.0
         train_y = torch.Tensor(np.array([i[1] for i in training_data]))
         BATCH_SIZE = 10
-        EPOCHS = 3
+        L1_LAMBDA = 0.01
+        EPOCHS = 1
+        model.zero_grad()
         for epoch in range(EPOCHS):
             for i in tqdm(range(0, len(train_X), BATCH_SIZE)):
                 batch_X = train_X[i:i + BATCH_SIZE].view(-1, 1, 604, 604).cuda()
                 batch_y = train_y[i:i + BATCH_SIZE].cuda()
-                model.zero_grad()
+                # model.zero_grad()
                 outputs = model(batch_X)
                 outputs = F.softmax(outputs, dim=1)
                 loss = nn.NLLLoss()
                 l = loss(outputs, torch.argmax(batch_y, 1))
+                l1_penalty = torch.tensor(0.).cuda()
+                for output in output_hook.outputs:
+                    l1_penalty += torch.norm(output, 1)
+                l += L1_LAMBDA * l1_penalty
                 l.backward()
                 optimizer.step()
             log.info(f"Epoch: {epoch}. Loss: {l}")
@@ -161,8 +174,8 @@ if __name__ == "__main__":
         for i in tqdm(range(len(test_X))):
             real = torch.argmax(test_y[i])
             net_out = model(test_X[i].view(-1, 1, 604, 604).cuda())[0]
-            print(test_X[i])
-            print("net_out", net_out)
+            # print(test_X[i])
+            # print("net_out", net_out)
             predict = torch.softmax(net_out, dim=0)
             print(real, torch.argmax(predict))
             true.append(real)
