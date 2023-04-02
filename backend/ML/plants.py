@@ -67,7 +67,7 @@ class AyonNet(nn.Module):
         self.fc1 = nn.Linear(512 * 5 * 5, 1024)
         self.dropout = nn.Dropout(0.5)
         self.fc2 = nn.Linear(1024, 1024)
-        self.fc3 = nn.Linear(1024, 1024)
+        # self.fc3 = nn.Linear(1024, 1024)
         self.fc4 = nn.Linear(1024, 512)
         self.fc5 = nn.Linear(512, 62)
 
@@ -85,7 +85,7 @@ class AyonNet(nn.Module):
         x = F.relu(self.fc1(x))
         x = self.dropout(x)
         x = F.relu(self.fc2(x))
-        x = F.relu(self.fc3(x))
+        # x = F.relu(self.fc3(x))
         x = F.relu(self.fc4(x))
         x = self.fc5(x)
         return x
@@ -122,17 +122,17 @@ if __name__ == "__main__":
         testing_data = np.load("plant_testing_data.npy", allow_pickle=True)
         with open("plant_class_map.pkl", "rb") as f:
             class_map = pickle.load(f)
-    model = AyonNet()
+    model = AyonNet().cuda()
     optimizer = optim.Adam(model.parameters(), lr=0.001)
     train_X = torch.Tensor(np.array([i[0] for i in training_data])).view(-1, 1, 604, 604)
     train_X /= 255.0
     train_y = torch.Tensor(np.array([i[1] for i in training_data]))
-    BATCH_SIZE = 25
+    BATCH_SIZE = 5
     EPOCHS = 3
     for epoch in range(EPOCHS):
         for i in tqdm(range(0, len(train_X), BATCH_SIZE)):
-            batch_X = train_X[i:i + BATCH_SIZE].view(-1, 1, 604, 604)
-            batch_y = train_y[i:i + BATCH_SIZE]
+            batch_X = train_X[i:i + BATCH_SIZE].view(-1, 1, 604, 604).cuda()
+            batch_y = train_y[i:i + BATCH_SIZE].cuda()
             model.zero_grad()
             outputs = model(batch_X)
             outputs = F.softmax(outputs, dim=1)
@@ -140,6 +140,8 @@ if __name__ == "__main__":
             loss.backward()
             optimizer.step()
         log.info(f"Epoch: {epoch}. Loss: {loss}")
+
+    torch.save(model.state_dict(), "plant.pt")
 
     correct = 0
     total = 0
@@ -157,6 +159,3 @@ if __name__ == "__main__":
             total += 1
     log.info(f"Accuracy: {round(correct / total, 3)}")
     model.train()
-
-    if round(correct / total, 3) > 0:
-        torch.save(model.state_dict(), "plant.pt")
