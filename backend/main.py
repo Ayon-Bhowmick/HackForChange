@@ -5,6 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from fastapi import Body, FastAPI
 import database
+import uvicorn
 #from google.cloud import storage
 
 # import socketserver
@@ -36,19 +37,21 @@ import database
 #             for key in form.keys(): 
 #                 file.write(str(form.getvalue(str(key))) + ",")
 
-app = FastAPI()
+#if __name__ == "__main__":
 db = database.getDatatbase()
 PROJECT_ID = "hackforchange-382500"
 KEY_FILE_NAME = "mykey.json"
 STORAGE_ID = "sllabstorage"
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+    #uvicorn.run("main:app", host='0.0.0.0', workers=2)
 
+app = FastAPI()
+app.add_middleware(
+        CORSMiddleware,
+        allow_origins=["*"],
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
+)
 
 @app.get("/ping")
 async def read_root():
@@ -96,3 +99,4 @@ async def addPhoto(imageURL: str=Body(...,embed=True)):
 
 # print("serving at port", PORT)
 # httpd.serve_forever()
+
