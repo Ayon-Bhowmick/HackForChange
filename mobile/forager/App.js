@@ -1,4 +1,4 @@
-import { StatusBar } from 'expo-status-bar';
+{/*import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, Text, View } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import Map from "./views/Map.js"
@@ -31,3 +31,33 @@ const styles = StyleSheet.create({
     height: '100%',
   },
 });
+*/}
+
+import 'react-native-url-polyfill/auto';
+import { useEffect, useState } from 'react';
+import { View } from 'react-native';
+import { Auth } from './views/Auth';
+import { Home } from './views/Home';
+import { supabase } from './services/supabase';
+
+export default function App() {
+  const [session, setSession] = useState(null)
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session)
+    })
+
+    supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session)
+    })
+  }, [])
+
+  return (
+    <View>
+      {
+        session && session.user ? <Home /> : <Auth /> 
+      }
+    </View>
+  )
+}
