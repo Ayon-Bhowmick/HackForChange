@@ -65,6 +65,7 @@ class AyonNet(nn.Module):
         self.conv4 = nn.Conv2d(128, 256, 5)
         self.conv5 = nn.Conv2d(256, 512, 5)
         self.fc1 = nn.Linear(512 * 5 * 5, 1024)
+        self.dropout = nn.Dropout(0.5)
         self.fc2 = nn.Linear(1024, 1024)
         self.fc3 = nn.Linear(1024, 1024)
         self.fc4 = nn.Linear(1024, 512)
@@ -81,6 +82,7 @@ class AyonNet(nn.Module):
     def forward(self):
         x = self.convs(x)
         x = F.relu(self.fc1(x))
+        x = self.dropout(x)
         x = F.relu(self.fc2(x))
         x = F.relu(self.fc3(x))
         x = F.relu(self.fc4(x))
