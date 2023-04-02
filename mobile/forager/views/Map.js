@@ -1,4 +1,4 @@
-import { Button, StyleSheet, Text, View } from 'react-native';
+import { Button, StyleSheet, Text, View, TouchableOpacity } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { useRef, useState, useEffect} from 'react';
 import MapView, { Callout, Marker, PROVIDER_GOOGLE } from 'react-native-maps';
@@ -36,8 +36,11 @@ export default function Map({navigation}) {
 
   
   return (
-    <View>
-    
+    <View style={styles.container}>
+        
+      <TouchableOpacity onPress={() => navigation.navigate('Add')} style={styles.appButtonContainer}>
+		<Text style={styles.appButtonText}>+</Text>
+	  </TouchableOpacity>
       <MapView 
         style={styles.map}
         onRegionChange={onRegionChange}
@@ -50,30 +53,50 @@ export default function Map({navigation}) {
         
         >
         </MapView>
-        <Button style={styles.button}
-        title="Add a Pin"
-        onPress={() => navigation.navigate('Add')}
-      />
+        
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'top',
-    justifyContent: 'center',
+    // flex: 1,
+     backgroundColor: '#e3e1d5',
+    // alignItems: 'top',
+    // justifyContent: 'center',
   },
   map: {
     width: '100%',
-    height: '92%',
+    height: '100%',
     top: 0
     
   },
 
   button: {
     position: 'absolute',
+    top: 30,
+    
 
-  }
+  },
+
+  appButtonContainer: {
+    elevation: 8,
+    backgroundColor: "#808516",
+    borderRadius: 100,
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    width: 62,
+    alignSelf: 'center',
+    position: 'absolute',
+    bottom: '7%',
+    zIndex: 5,
+  },
+  appButtonText: {
+    fontSize: 35,
+    color: "#fff",
+    
+    alignSelf: "center",
+    
+    
+  },
 });
