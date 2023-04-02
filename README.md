@@ -3,7 +3,9 @@
 ## How to Run
 * Navigate to folder mobile/forager and in terminal run
 ```
+npm install
 npx expo start
+download Expogo in your phone
 ```
 ## What it does
 
