@@ -9,9 +9,11 @@ import torch.optim as optim
 import logging
 import sys
 import pickle
+import sklearn.metrics
+import matplotlib.pyplot as plt
 
 BUILD_DATA = False
-TRAIN = False
+TRAIN = True
 
 class PlantDataMaker():
     log = logging.getLogger("info")
@@ -125,11 +127,12 @@ if __name__ == "__main__":
             class_map = pickle.load(f)
     model = AyonNet().cuda()
     if TRAIN:
+        log.info("Training model")
         optimizer = optim.Adam(model.parameters(), lr=0.001)
         train_X = torch.Tensor(np.array([i[0] for i in training_data])).view(-1, 1, 604, 604)
         train_X /= 255.0
         train_y = torch.Tensor(np.array([i[1] for i in training_data]))
-        BATCH_SIZE = 5
+        BATCH_SIZE = 10
         EPOCHS = 3
         for epoch in range(EPOCHS):
             for i in tqdm(range(0, len(train_X), BATCH_SIZE)):
@@ -138,27 +141,44 @@ if __name__ == "__main__":
                 model.zero_grad()
                 outputs = model(batch_X)
                 outputs = F.softmax(outputs, dim=1)
-                loss = F.binary_cross_entropy(outputs, batch_y)
-                loss.backward()
+                loss = nn.NLLLoss()
+                l = loss(outputs, torch.argmax(batch_y, 1))
+                l.backward()
                 optimizer.step()
-            log.info(f"Epoch: {epoch}. Loss: {loss}")
+            log.info(f"Epoch: {epoch}. Loss: {l}")
         torch.save(model.state_dict(), "plant.pt")
     else:
         model.load_state_dict(torch.load("plant.pt"))
 
-    correct = 0
-    total = 0
+
     log.info("testing")
     test_X = torch.Tensor(np.array([i[0] for i in testing_data])).view(-1, 1, 604, 604)
     test_y = torch.Tensor(np.array([i[1] for i in testing_data]))
+    true = []
+    pred = []
     model.eval()
     with torch.no_grad():
         for i in tqdm(range(len(test_X))):
             real = torch.argmax(test_y[i])
-            net_out = model(test_X[i].view(-1, 1, 604, 604))[0]
-            predict = torch.argmax(net_out)
-            if predict == real:
-                correct += 1
-            total += 1
-    log.info(f"Accuracy: {round(correct/total, 3)}")
+            net_out = model(test_X[i].view(-1, 1, 604, 604).cuda())[0]
+            print(test_X[i])
+            print("net_out", net_out)
+            predict = torch.softmax(net_out, dim=0)
+            print(real, torch.argmax(predict))
+            true.append(real)
+            pred.append(predict)
+        log.info(sklearn.metrics.classification_report(true, pred, target_names=list(class_map.values())))
+        # save confusion matrix
+        cm = sklearn.metrics.confusion_matrix(true, pred)
+        fig = plt.figure()
+        ax = fig.add_subplot(111)
+        cax = ax.matshow(cm)
+        plt.title("Confusion matrix of the classifier")
+        fig.colorbar(cax)
+        ax.set_xticklabels([""] + list(class_map.values()))
+        ax.set_yticklabels([""] + list(class_map.values()))
+        plt.xlabel("Predicted")
+        plt.ylabel("True")
+        plt.savefig("confusion_matrix.png")
+    # log.info(f"Accuracy: {round(correct/total, 3)}")
     model.train()
