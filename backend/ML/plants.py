@@ -78,6 +78,16 @@ class AyonNet(nn.Module):
         x = F.max_pool2d(F.relu(self.conv5(x)), (3, 3))
         x = x.view(-1, 512 * 5 * 5)
 
+    def forward(self):
+        x = self.convs(x)
+        x = F.relu(self.fc1(x))
+        x = F.relu(self.fc2(x))
+        x = F.relu(self.fc3(x))
+        x = F.relu(self.fc4(x))
+        x = self.fc5(x)
+        # return F.softmax(x, dim=1)
+        return x
+
 
 if __name__ == "__main__":
     logging.basicConfig(stream=sys.stdout)
@@ -86,3 +96,12 @@ if __name__ == "__main__":
     if BUILD_DATA:
         plant.makeTrainingData()
         plant.makeTestingData()
+        training_data = plant.training_data
+        testing_data = plant.testing_data
+        class_map = plant.class_map
+    else:
+        training_data = np.load("plant_training_data.npy", allow_pickle=True)
+        testing_data = np.load("plant_testing_data.npy", allow_pickle=True)
+        with open("plant_class_map.pkl", "rb") as f:
+            class_map = pickle.load(f)
+    
