@@ -148,17 +148,17 @@ if __name__ == "__main__":
 
     correct = 0
     total = 0
-    log.info("Testing")
+    log.info("testing")
     test_X = torch.Tensor(np.array([i[0] for i in testing_data])).view(-1, 1, 604, 604)
     test_y = torch.Tensor(np.array([i[1] for i in testing_data]))
     model.eval()
     with torch.no_grad():
         for i in tqdm(range(len(test_X))):
             real = torch.argmax(test_y[i])
-            output = model(test_X[i])[0]
-            predict = torch.argmax(output)
-            if real == predict:
+            net_out = model(test_X[i].view(-1, 1, 604, 604))[0]
+            predict = torch.argmax(net_out)
+            if predict == real:
                 correct += 1
             total += 1
-    log.info(f"Accuracy: {round(correct / total, 3)}")
+    log.info(f"Accuracy: {round(correct/total, 3)}")
     model.train()
