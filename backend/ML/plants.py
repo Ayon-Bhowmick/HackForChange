@@ -10,7 +10,7 @@ import logging
 import sys
 import pickle
 
-BUILD_DATA = True
+BUILD_DATA = False
 LOAD_MODEL = False
 
 class PlantDataMaker():
@@ -106,11 +106,11 @@ if __name__ == "__main__":
         testing_data = np.load("plant_testing_data.npy", allow_pickle=True)
         with open("plant_class_map.pkl", "rb") as f:
             class_map = pickle.load(f)
-    model = AyonNet()
+    model = AyonNet().cuda()
     optimizer = optim.Adam(model.parameters(), lr=0.001)
-    train_X = torch.Tensor(np.array([i[0] for i in training_data])).view(-1, 1, 604, 604)
+    train_X = torch.Tensor(np.array([i[0] for i in training_data])).view(-1, 1, 604, 604).cuda()
     train_X /= 255.0
-    train_y = torch.Tensor(np.array([i[1] for i in training_data]))
+    train_y = torch.Tensor(np.array([i[1] for i in training_data])).cuda()
     BATCH_SIZE = 25
     EPOCHS = 3
     for epoch in range(EPOCHS):
@@ -128,8 +128,8 @@ if __name__ == "__main__":
     correct = 0
     total = 0
     log.info("Testing")
-    test_X = torch.Tensor(np.array([i[0] for i in testing_data])).view(-1, 1, 604, 604)
-    test_y = torch.Tensor(np.array([i[1] for i in testing_data]))
+    test_X = torch.Tensor(np.array([i[0] for i in testing_data])).view(-1, 1, 604, 604).cuda()
+    test_y = torch.Tensor(np.array([i[1] for i in testing_data])).cuda()
     model.eval()
     with torch.no_grad():
         for i in tqdm(range(len(test_X))):
